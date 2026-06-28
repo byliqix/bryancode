@@ -187,14 +187,20 @@ export const COMMANDS = {
       const status = await checkOllama();
       if (status.running && status.models.length > 0) {
         models = {};
-        status.models.forEach((m, i) => {
-          models[String(i + 1)] = { id: m, label: m };
+        let idx = 0;
+        status.models.forEach(m => {
+          if (state.paidModels.has(m)) return;
+          idx++;
+          models[String(idx)] = { id: m, label: m };
         });
+        if (idx < status.models.length) {
+          console.log(chalk.yellow(`  ⚠ ${status.models.length - idx} model(s) butuh subscription (disembunyikan)\n`));
+        }
       }
     }
 
     if (Object.keys(models).length === 0) {
-      console.log(chalk.red('\n  ✗ No models available\n'));
+      console.log(chalk.red('\n  ✗ No free models available\n'));
       hr('─', chalk.red);
       return;
     }

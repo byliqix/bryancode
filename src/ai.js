@@ -159,7 +159,11 @@ export async function streamResponse(userPrompt) {
     }
     if (state.provider === 'ollama') {
       const isModelErr = err.message?.toLowerCase().includes('model') && err.status === 404;
-      if (isModelErr) {
+      const isPaid = err.status === 403;
+      if (isPaid) {
+        state.paidModels.add(state.currentModel);
+        console.log(chalk.yellow(`\n  ⚠ "${state.currentModel}" perlu subscription. Ganti model via /model\n`));
+      } else if (isModelErr) {
         console.log(chalk.yellow(`\n  ⚠ Model "${state.currentModel}" tidak ditemukan. Ganti model via /model\n`));
       } else {
         console.log(chalk.yellow(`\n  ⚠ Gagal terhubung ke ${getOllamaConfig().baseURL}\n`));
