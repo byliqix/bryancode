@@ -8,6 +8,7 @@ import { checkOllama } from './ai.js';
 import { saveReport } from './report.js';
 import { hr, clearScreen, printBanner, modelShortName, elapsedTime } from './ui.js';
 import { autoExploit } from './exploit.js';
+import { analyzeBurp } from './burp.js';
 
 export const COMMANDS = {
   '/help'() {
@@ -21,6 +22,7 @@ export const COMMANDS = {
       ['/run <cmd>',      'Run a shell command & send output to AI for analysis'],
       ['/autoexploit',    'Auto scan + exploit plan (nmap → fuzz → searchsploit → AI)'],
       ['/img <url/file>', 'Send image for AI analysis (URL or local path)'],
+      ['/burp <file>',    'Import Burp XML scan results for AI analysis'],
       ['/report [file]',  'Save session as Markdown pentest report'],
       ['/history',        'Show conversation history'],
       ['/reset',          'Reset conversation context'],
@@ -109,6 +111,10 @@ export const COMMANDS = {
       return;
     }
     await streamResponse(args);
+  },
+
+  async '/burp'(args) {
+    await analyzeBurp(args);
   },
 
   async '/provider'() {
