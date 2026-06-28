@@ -12,7 +12,7 @@ dotenv.config();
 let groqClient = null;
 let ollamaClient = null;
 
-const IMAGE_URL_RE = /https?:\/\/[^\s]+\.(png|jpg|jpeg|gif|webp)(\?[^\s]*)?/i;
+const IMAGE_URL_RE = /https?:\/\/[^\s]+\.(png|jpg|jpeg|gif|webp)(\?[^\s]*)?/gi;
 const IMAGE_EXT_RE = /\.(png|jpg|jpeg|gif|webp|bmp)$/i;
 
 export async function checkOllama() {
