@@ -1,5 +1,6 @@
 import Groq from 'groq-sdk';
 import OpenAI from 'openai';
+import fs from 'fs';
 import dotenv from 'dotenv';
 import chalk from 'chalk';
 import { CONFIG, getOllamaConfig } from './config.js';
@@ -10,6 +11,9 @@ dotenv.config();
 
 let groqClient = null;
 let ollamaClient = null;
+
+const IMAGE_URL_RE = /https?:\/\/[^\s]+\.(png|jpg|jpeg|gif|webp)(\?[^\s]*)?/i;
+const IMAGE_EXT_RE = /\.(png|jpg|jpeg|gif|webp|bmp)$/i;
 
 export async function checkOllama() {
   const cfg = getOllamaConfig();
@@ -53,22 +57,51 @@ function getClient() {
   return ollamaClient;
 }
 
+function buildUserContent(text) {
+  const urls = [...text.matchAll(IMAGE_URL_RE)].map(m => m[0]);
+  const localFiles = text.split(/\s+/).filter(s => IMAGE_EXT_RE.test(s) && fs.existsSync(s));
+
+  if (urls.length === 0 && localFiles.length === 0) return text;
+
+  const cleanText = text.replace(IMAGE_URL_RE, '').trim();
+  const parts = [{ type: 'text', text: cleanText || 'What is in this image?' }];
+
+  for (const url of urls) {
+    parts.push({ type: 'image_url', image_url: { url } });
+  }
+
+  for (const file of localFiles) {
+    const data = fs.readFileSync(file);
+    const ext = file.split('.').pop();
+    const b64 = data.toString('base64');
+    parts.push({ type: 'image_url', image_url: { url: `data:image/${ext};base64,${b64}` } });
+  }
+
+  return parts;
+}
+
 export async function streamResponse(userPrompt) {
   const contextNote = state.target
     ? `\n[Session context: current target is ${state.target}]`
     : '';
 
-  state.conversationHistory.push({ role: 'user', content: userPrompt + contextNote });
+  const content = buildUserContent(userPrompt + contextNote);
+  state.conversationHistory.push({ role: 'user', content: typeof content === 'string' ? content : userPrompt + contextNote });
 
   const messages = [
     { role: 'system', content: CONFIG.systemPrompt },
-    ...state.conversationHistory,
+    ...state.conversationHistory.map(m => ({ role: m.role, content: m.content })),
   ];
+  messages[messages.length - 1].content = content;
+
+  const isVision = Array.isArray(content);
 
   hr('─', chalk.dim);
   process.stdout.write(
     chalk.bold.red('  ☠ BryanCode') +
-    chalk.dim(` ${state.provider} [${modelShortName(state.currentModel)}]\n\n`)
+    chalk.dim(` ${state.provider} [${modelShortName(state.currentModel)}]`) +
+    (isVision ? chalk.red(' 📷') : '') +
+    '\n\n'
   );
 
   let fullResponse = '';

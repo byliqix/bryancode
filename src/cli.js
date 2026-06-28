@@ -20,6 +20,7 @@ export const COMMANDS = {
       ['/model',          'Switch AI model'],
       ['/run <cmd>',      'Run a shell command & send output to AI for analysis'],
       ['/autoexploit',    'Auto scan + exploit plan (nmap → fuzz → searchsploit → AI)'],
+      ['/img <url/file>', 'Send image for AI analysis (URL or local path)'],
       ['/report [file]',  'Save session as Markdown pentest report'],
       ['/history',        'Show conversation history'],
       ['/reset',          'Reset conversation context'],
@@ -100,6 +101,14 @@ export const COMMANDS = {
   async '/autoexploit'(args) {
     const target = args || state.target;
     await autoExploit(target);
+  },
+
+  async '/img'(args) {
+    if (!args) {
+      console.log(chalk.red('\n  Usage: /img <url> or /img <path> [question]\n'));
+      return;
+    }
+    await streamResponse(args);
   },
 
   async '/provider'() {
