@@ -24,6 +24,7 @@
     "dotenv": "^17.4.2",
     "groq-sdk": "^1.1.2",
     "inquirer": "^13.4.2",
+    "marked": "^18.0.5",
     "openai": "^6.45.0"
   },
   "devDependencies": {

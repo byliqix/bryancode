@@ -5,7 +5,7 @@ import { CONFIG, PROVIDERS, GROQ_MODELS, OLLAMA_MODELS, CHEATSHEETS, getActiveMo
 import { state } from './state.js';
 import { streamResponse } from './ai.js';
 import { checkOllama } from './ai.js';
-import { saveReport } from './report.js';
+import { saveReport, savePDF } from './report.js';
 import { hr, clearScreen, printBanner, modelShortName, elapsedTime } from './ui.js';
 import { autoExploit } from './exploit.js';
 import { analyzeBurp } from './burp.js';
@@ -23,7 +23,8 @@ export const COMMANDS = {
       ['/autoexploit',    'Auto scan + exploit plan (nmap → fuzz → searchsploit → AI)'],
       ['/img <url/file>', 'Send image for AI analysis (URL or local path)'],
       ['/burp <file>',    'Import Burp XML scan results for AI analysis'],
-      ['/report [file]',  'Save session as Markdown pentest report'],
+      ['/report [file]',  'Save session as Markdown/HTML report'],
+      ['/pdf',            'Generate HTML report (buka browser → Ctrl+P → PDF)'],
       ['/history',        'Show conversation history'],
       ['/reset',          'Reset conversation context'],
       ['/clear',          'Clear screen + reset'],
@@ -95,6 +96,17 @@ export const COMMANDS = {
     try {
       const file = saveReport(args);
       console.log(chalk.green(`\n  ✓ Report saved → ${file}\n`));
+    } catch (e) {
+      console.log(chalk.red(`\n  ✗ Failed: ${e.message}\n`));
+    }
+  },
+
+  '/pdf'() {
+    try {
+      const { htmlFile, pdfFile } = savePDF();
+      console.log(chalk.green(`\n  ✓ HTML report → ${htmlFile}\n`));
+      console.log(chalk.dim(`  ℹ Buka file HTML di browser, tekan Ctrl+P, simpan sebagai PDF:\n`));
+      console.log(chalk.cyan(`    ${pdfFile}\n`));
     } catch (e) {
       console.log(chalk.red(`\n  ✗ Failed: ${e.message}\n`));
     }
