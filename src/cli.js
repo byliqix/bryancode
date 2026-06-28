@@ -9,6 +9,7 @@ import { saveReport, savePDF } from './report.js';
 import { hr, clearScreen, printBanner, modelShortName, elapsedTime } from './ui.js';
 import { autoExploit } from './exploit.js';
 import { analyzeBurp } from './burp.js';
+import { attackLoop } from './agent.js';
 
 export const COMMANDS = {
   '/help'() {
@@ -21,6 +22,7 @@ export const COMMANDS = {
       ['/model',          'Switch AI model'],
       ['/run <cmd>',      'Run a shell command & send output to AI for analysis'],
       ['/autoexploit',    'Auto scan + exploit plan (nmap → fuzz → searchsploit → AI)'],
+      ['/attack <ip>',    'Attack mode otonom: AI exploit + execute command interaktif'],
       ['/img <url/file>', 'Send image for AI analysis (URL or local path)'],
       ['/burp <file>',    'Import Burp XML scan results for AI analysis'],
       ['/report [file]',  'Save session as Markdown/HTML report'],
@@ -127,6 +129,10 @@ export const COMMANDS = {
 
   async '/burp'(args) {
     await analyzeBurp(args);
+  },
+
+  async '/attack'(args) {
+    await attackLoop(args || state.target);
   },
 
   async '/provider'() {
